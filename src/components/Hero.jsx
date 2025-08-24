@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useGLTF, Text, Billboard, useAnimations } from '@react-three/drei';
 import * as THREE from 'three';
 
-const CarModel = () => {
+const CarModel = ({ carColor }) => {
   const carRef = useRef();
   const { scene, animations } = useGLTF('/Models/Car.glb');
   const { actions } = useAnimations(animations, carRef);
@@ -15,9 +15,14 @@ const CarModel = () => {
       if (child.isMesh) {
         child.castShadow = true;
         child.receiveShadow = true;
+        
+        // Change BodyGlossy material color based on carColor prop
+        if (child.material && child.material.name === 'BodyGlossy') {
+          child.material.color.setHex(carColor);
+        }
       }
     });
-  }, [scene]);
+  }, [scene, carColor]);
 
   // Scroll listener
   useEffect(() => {
@@ -83,7 +88,7 @@ const CarModel = () => {
       <primitive 
         ref={carRef} 
         object={scene} 
-        scale={1.5}
+        scale={3}
         position={[15, -20, 0]}
         rotation={[0, -Math.PI / 2, 0]}
         dispose={null}
@@ -117,6 +122,14 @@ const ResponsiveText = () => {
       // Move text upward as user scrolls down
       const scrollFactor = scrollY * 0.01; // Adjust speed of text movement
       textRef.current.position.y = 1 + scrollFactor;
+      
+      // Fade out text as user scrolls down (after 800px)
+      if (scrollY > 800) {
+        const opacity = Math.max(0, 1 - (scrollY - 800) / 200);
+        textRef.current.material.opacity = opacity;
+      } else {
+        textRef.current.material.opacity = 1;
+      }
     }
   });
   
@@ -138,6 +151,70 @@ const ResponsiveText = () => {
         font="https://fonts.gstatic.com/s/raleway/v14/1Ptrg8zYS_SKggPNwK4vaqI.woff"
       >
         Experience
+      </Text>
+    </Billboard>
+  );
+};
+
+const InteractiveText = () => {
+  const { viewport } = useThree();
+  const textRef = useRef();
+  const [scrollY, setScrollY] = useState(0);
+  
+  // Calculate responsive font size based on viewport width
+  const fontSize = Math.max(1, Math.min(8, viewport.width * 0.1));
+  
+  // Scroll listener for text movement
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Animate text position and opacity based on scroll
+  useFrame(() => {
+    if (textRef.current) {
+      // Only show text when scrolled to interactive panel section (around 1000px)
+      if (scrollY > 800) {
+        // Fade in text
+        const opacity = Math.min(1, (scrollY - 800) / 200);
+        textRef.current.material.opacity = opacity;
+        
+        // Move text from behind to front as user scrolls
+        const zPos = -8 + ((scrollY - 800) / 200) * 4; // Move from z=-8 to z=-4
+        textRef.current.position.z = Math.min(-4, zPos);
+        const yPos = 0 + ((scrollY - 800) / 200) * 4; // Move from z=-8 to z=-4
+        textRef.current.position.y = Math.min(4, yPos);
+      } else {
+        textRef.current.material.opacity = 0;
+      }
+      
+    }
+  });
+  
+  return (
+    <Billboard
+      follow={true}
+      lockX={false}
+      lockY={false}
+      lockZ={false}
+    >
+      <Text
+        ref={textRef}
+        position={[0, 0, -8]}
+        fontSize={fontSize}
+        color="#ffffff"
+        anchorX="center"
+        anchorY="middle"
+        textAlign="center"
+        font="https://fonts.gstatic.com/s/raleway/v14/1Ptrg8zYS_SKggPNwK4vaqI.woff"
+        material-transparent={true}
+        material-opacity={0}
+      >
+        Interactive
       </Text>
     </Billboard>
   );
@@ -180,7 +257,8 @@ const CameraController = () => {
   return null;
 };
 
-const Hero = () => {
+const Hero = ({ carColor }) => {
+  
   return (
     <group>
       <CameraController />
@@ -188,7 +266,10 @@ const Hero = () => {
       {/* Responsive 3D Text behind the car for depth */}
       <ResponsiveText />
       
-      <CarModel />
+      {/* Interactive 3D Text that appears when scrolled to interactive panel */}
+      <InteractiveText />
+      
+      <CarModel carColor={carColor} />
       
       {/* Lighting setup for car */}
       <ambientLight intensity={1.2} />

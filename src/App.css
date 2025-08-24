@@ -1,3 +1,17 @@
+@font-face {
+  font-family: 'Azonix';
+  src: url('/fonts/Azonix.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.azonix-font {
+  font-family: 'Azonix', sans-serif !important;
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
