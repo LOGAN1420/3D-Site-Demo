@@ -22,7 +22,7 @@ const InteractivePanel = ({ scrollY, setCarColor, carColor }) => {
       style={{
         position: 'fixed',
         top: '50%',
-        right: '50px',
+        right: 'clamp(20px, 5vw, 50px)',
         transform: 'translateY(-50%)',
         opacity: panelOpacity,
         transition: 'opacity 0.3s ease',
@@ -30,16 +30,17 @@ const InteractivePanel = ({ scrollY, setCarColor, carColor }) => {
         zIndex: 1000,
         fontFamily: 'Azonix, Inter, sans-serif',
         backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        padding: '24px',
+        padding: 'clamp(16px, 3vw, 24px)',
         borderRadius: '16px',
         backdropFilter: 'blur(10px)',
-        width: '800px'
+        width: 'min(800px, 90vw)',
+        maxWidth: '800px'
       }}
     >
       <div 
         style={{
           color: '#ffffff',
-          fontSize: '28px',
+          fontSize: 'clamp(20px, 4vw, 28px)',
           fontWeight: '600',
           textAlign: 'center',
           marginBottom: '24px',
@@ -57,9 +58,10 @@ const InteractivePanel = ({ scrollY, setCarColor, carColor }) => {
       <div style={{ 
         display: 'flex', 
         justifyContent: 'center',
-        flexDirection: 'row', 
-        gap: '12px',
-        padding: '8px'
+        flexDirection: window.innerWidth < 768 ? 'column' : 'row',
+        alignItems: 'center', 
+        gap: 'clamp(8px, 2vw, 12px)',
+        padding: 'clamp(4px, 1vw, 8px)'
       }}>
         {colors.map((color) => {
           const isSelected = carColor === color.hex;
@@ -68,8 +70,8 @@ const InteractivePanel = ({ scrollY, setCarColor, carColor }) => {
               key={color.name}
               onClick={() => setCarColor(color.hex)}
               style={{
-                width: '60px',
-                height: '60px',
+                width: 'clamp(40px, 8vw, 60px)',
+                height: 'clamp(40px, 8vw, 60px)',
                 backgroundColor: color.css,
                 borderRadius: '8px',
                 cursor: 'pointer',
@@ -196,21 +198,21 @@ const BottomPullMask = ({ scrollY }) => {
 
 // Sliding Text Animation Component
 const SlidingText = ({ scrollY }) => {
-  const [leftTextPosition, setLeftTextPosition] = useState(-100);
-  const [rightTextPosition, setRightTextPosition] = useState(100);
+  const [leftTextPosition, setLeftTextPosition] = useState(-200);
+  const [rightTextPosition, setRightTextPosition] = useState(200);
   
   useEffect(() => {
     const startScroll = 4100; // Start sliding after pull-up completes
     const endScroll = 4500; // Finish sliding at 3900px
     
     if (scrollY < startScroll) {
-      setLeftTextPosition(-100);
-      setRightTextPosition(100);
+      setLeftTextPosition(-200);
+      setRightTextPosition(200);
     } else if (scrollY >= startScroll && scrollY < endScroll) {
       const progress = (scrollY - startScroll) / (endScroll - startScroll);
       const easedProgress = 1 - Math.pow(1 - progress, 3); // Cubic ease-out
-      setLeftTextPosition(-100 + (easedProgress * 100)); // Slide from left (-100% to 0%)
-      setRightTextPosition(100 - (easedProgress * 100)); // Slide from right (100% to 0%)
+      setLeftTextPosition(-200 + (easedProgress * 200)); // Slide from left (-200% to 0%)
+      setRightTextPosition(200 - (easedProgress * 200)); // Slide from right (200% to 0%)
     } else if (scrollY >= endScroll) {
       setLeftTextPosition(0);
       setRightTextPosition(0);
@@ -224,15 +226,16 @@ const SlidingText = ({ scrollY }) => {
         style={{
           position: 'fixed',
           top: '40%',
-          left: '50%',
-          transform: `translate(calc(-50% + ${leftTextPosition}vw), -50%)`,
+          left: `calc(50% + ${leftTextPosition}vw)`,
+          transform: `translate(-50%, -50%)`,
           zIndex: 10000,
           fontFamily: 'Raleway, sans-serif',
           color: '#ffffff',
-          fontSize: '60px',
+          fontSize: 'clamp(24px, 6vw, 48px)',
           fontWeight: '1000',
           textAlign: 'center',
           whiteSpace: 'nowrap',
+          overflow: 'hidden',
           transition: 'transform 0.1s ease-out',
           pointerEvents: 'none'
         }}
@@ -245,15 +248,16 @@ const SlidingText = ({ scrollY }) => {
         style={{
           position: 'fixed',
           top: '48%',
-          left: '50%',
-          transform: `translate(calc(-50% + ${rightTextPosition}vw), -50%)`,
+          left: `calc(50% + ${rightTextPosition}vw)`,
+          transform: `translate(-50%, -50%)`,
           zIndex: 10000,
           fontFamily: 'Raleway, sans-serif',
           color: '#ffffff',
-          fontSize: '60px',
+          fontSize: 'clamp(24px, 6vw, 48px)',
           fontWeight: '1000',
           textAlign: 'center',
           whiteSpace: 'nowrap',
+          overflow: 'hidden',
           transition: 'transform 0.1s ease-out',
           pointerEvents: 'none'
         }}
@@ -330,7 +334,7 @@ const App = () => {
               zIndex: 1000,
               fontFamily: 'Raleway, sans-serif',
               color: '#ffffff',
-              fontSize: '32px',
+              fontSize: 'clamp(24px, 5vw, 32px)',
               fontWeight: '600',
               textAlign: 'center',
               maxWidth: '90vw',
