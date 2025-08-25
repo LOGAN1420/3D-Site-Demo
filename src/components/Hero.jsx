@@ -260,16 +260,18 @@ const CameraController = () => {
 const Hero = ({ carColor }) => {
   
   return (
-    <group>
-      <CameraController />
-      
-      {/* Responsive 3D Text behind the car for depth */}
-      <ResponsiveText />
-      
-      {/* Interactive 3D Text that appears when scrolled to interactive panel */}
-      <InteractiveText />
-      
-      <CarModel carColor={carColor} />
+    <>
+      <color attach="background" args={['#62c7f0']} />
+      <group>
+        <CameraController />
+        
+        {/* Responsive 3D Text behind the car for depth */}
+        <ResponsiveText />
+        
+        {/* Interactive 3D Text that appears when scrolled to interactive panel */}
+        <InteractiveText />
+        
+        <CarModel carColor={carColor} />
       
       {/* Lighting setup for car */}
       <ambientLight intensity={1.2} />
@@ -289,7 +291,8 @@ const Hero = ({ carColor }) => {
         intensity={0.8} 
         color="#ffffff"
       />
-    </group>
+      </group>
+    </>
   );
 };
 

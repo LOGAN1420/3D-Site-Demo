@@ -1,6 +1,7 @@
-import { OrbitControls, Stats } from "@react-three/drei";
+import { Stats } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import Hero from "./components/Hero";
+import SecondScene from "./components/SecondScene";
 import { useState, useEffect } from "react";
 
 // Interactive Panel Component (outside Canvas)
@@ -90,10 +91,83 @@ const InteractivePanel = ({ scrollY, setCarColor, carColor }) => {
   );
 };
 
+// CSS Circular Mask Overlay Component
+const CircularMask = ({ scrollY, onTransitionComplete }) => {
+  const [transitionState, setTransitionState] = useState('none');
+  const [maskScale, setMaskScale] = useState(0);
+  
+  useEffect(() => {
+    // Define scroll ranges for different phases
+    const startScroll = 2800;
+    const expandEndScroll = 3200; // 400px to expand
+    const stayEndScroll = 3400; // 200px to stay full
+    const shrinkEndScroll = 3800; // 400px to shrink
+    
+    if (scrollY < startScroll) {
+      setMaskScale(0);
+      if (transitionState !== 'none') {
+        setTransitionState('none');
+        onTransitionComplete(false);
+      }
+    } else if (scrollY >= startScroll && scrollY < expandEndScroll) {
+      // Expanding phase with smooth easing
+      const progress = (scrollY - startScroll) / (expandEndScroll - startScroll);
+      const easedProgress = 1 - Math.pow(1 - progress, 3); // Cubic ease-out for smoother scaling
+      setMaskScale(easedProgress * 150); // Scale to 150vw to cover screen
+      if (transitionState !== 'expanding') {
+        setTransitionState('expanding');
+      }
+    } else if (scrollY >= expandEndScroll && scrollY < stayEndScroll) {
+      setMaskScale(150);
+      if (transitionState !== 'full') {
+        setTransitionState('full');
+      }
+    } else if (scrollY >= stayEndScroll && scrollY < shrinkEndScroll) {
+      // Shrinking phase with smooth easing
+      const progress = (scrollY - stayEndScroll) / (shrinkEndScroll - stayEndScroll);
+      const easedProgress = Math.pow(progress, 3); // Cubic ease-in for smoother scaling
+      setMaskScale(150 * (1 - easedProgress));
+      if (transitionState !== 'shrinking') {
+        setTransitionState('shrinking');
+        onTransitionComplete(true);
+      }
+    } else if (scrollY >= shrinkEndScroll) {
+      setMaskScale(0);
+      if (transitionState !== 'complete') {
+        setTransitionState('complete');
+      }
+    }
+  }, [scrollY, transitionState, onTransitionComplete]);
+  
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        width: '100vw',
+        height: '100vw',
+        backgroundColor: '#ffdbe1',
+        borderRadius: '50%',
+        transform: `translate(-50%, -50%) scale(${maskScale / 100})`,
+        transition: 'transform 0.1s ease-out',
+        zIndex: 9999,
+        pointerEvents: 'none'
+      }}
+    />
+  );
+};
+
+
 const App = () => {
     const [carColor, setCarColor] = useState(0x538709); // Default car color (Green)
     const [scrollY, setScrollY] = useState(0);
+    const [currentScene, setCurrentScene] = useState(1); // 1 for first scene, 2 for second scene
     
+    const handleTransitionComplete = (showSecondScene) => {
+      setCurrentScene(showSecondScene ? 2 : 1);
+    };
+
     useEffect(() => {
       const handleScroll = () => {
         setScrollY(window.scrollY);
@@ -104,18 +178,55 @@ const App = () => {
     }, []);
 
     return (
-        <div style={{ height: '300vh' }}>
+        <div style={{ height: '600vh' }}>
           <Canvas 
             style={{height: '100vh', width: '100vw', position: 'fixed', top: 0, left: 0}} 
             camera={{ position: [0, 2, 10], fov: 45 }}
           >
-            {/*<OrbitControls enablePan={false} enableZoom={false} />*/}
-            <Hero carColor={carColor} />
+            {/* First Scene - Hero with car */}
+            {currentScene === 1 && (
+              <Hero carColor={carColor} />
+            )}
+            
+            {/* Second Scene - Draggable objects */}
+            {currentScene === 2 && (
+              <SecondScene />
+            )}
+            
+            
             <Stats />
           </Canvas>
           
-          {/* Interactive Panel outside Canvas */}
-          <InteractivePanel scrollY={scrollY} setCarColor={setCarColor} carColor={carColor} />
+          {/* CSS Circular Mask Overlay */}
+          <CircularMask 
+            scrollY={scrollY} 
+            onTransitionComplete={handleTransitionComplete}
+          />
+          
+          {/* Interactive Panel outside Canvas - hide during scene transition */}
+          {currentScene === 1 && (
+            <InteractivePanel scrollY={scrollY} setCarColor={setCarColor} carColor={carColor} />
+          )}
+          
+          {/* Second Scene Text Overlay */}
+          {currentScene === 2 && (
+            <div style={{
+              position: 'fixed',
+              top: '80px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 1000,
+              fontFamily: 'Azonix, Inter, sans-serif',
+              color: '#ffffff',
+              fontSize: '32px',
+              fontWeight: '600',
+              textAlign: 'center',
+              maxWidth: '90vw',
+              lineHeight: '1.4'
+            }}>
+              Turn your store into an interactive playground where customers can experience STEM toys firsthand.
+            </div>
+          )}
           
           {/* Scrollable content to trigger rocket launch */}
           <div style={{ 
