@@ -45,7 +45,7 @@ const InteractivePanel = ({ scrollY, setCarColor, carColor }) => {
           marginBottom: '24px',
           textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
           lineHeight: '1.4',
-          fontFamily: "'Azonix', sans-serif !important",
+          fontFamily: "'Raleway', sans-serif",
           wordWrap: 'break-word',
           overflowWrap: 'break-word',
           width: '100%'
@@ -98,10 +98,10 @@ const CircularMask = ({ scrollY, onTransitionComplete }) => {
   
   useEffect(() => {
     // Define scroll ranges for different phases
-    const startScroll = 2800;
-    const expandEndScroll = 3200; // 400px to expand
-    const stayEndScroll = 3400; // 200px to stay full
-    const shrinkEndScroll = 3800; // 400px to shrink
+    const startScroll = 2200;
+    const expandEndScroll = 2400; // 200px to expand
+    const stayEndScroll = 2600; // 200px to stay full
+    const shrinkEndScroll = 2800; // 200px to shrink
     
     if (scrollY < startScroll) {
       setMaskScale(0);
@@ -147,7 +147,7 @@ const CircularMask = ({ scrollY, onTransitionComplete }) => {
         left: '50%',
         width: '100vw',
         height: '100vw',
-        backgroundColor: '#ffdbe1',
+        backgroundColor: '#FF8FAB',
         borderRadius: '50%',
         transform: `translate(-50%, -50%) scale(${maskScale / 100})`,
         transition: 'transform 0.1s ease-out',
@@ -158,9 +158,115 @@ const CircularMask = ({ scrollY, onTransitionComplete }) => {
   );
 };
 
+// Bottom Pull-up Mask for second scene transition
+const BottomPullMask = ({ scrollY }) => {
+  const [maskHeight, setMaskHeight] = useState(0);
+  
+  useEffect(() => {
+    const startScroll = 3600; // Start pulling up at 3000px
+    const endScroll = 4000; // Finish pulling up at 3400px
+    
+    if (scrollY < startScroll) {
+      setMaskHeight(0);
+    } else if (scrollY >= startScroll && scrollY < endScroll) {
+      const progress = (scrollY - startScroll) / (endScroll - startScroll);
+      const easedProgress = 1 - Math.pow(1 - progress, 3); // Cubic ease-out
+      setMaskHeight(easedProgress * 100); // Pull up to 100vh
+    } else if (scrollY >= endScroll) {
+      setMaskHeight(100);
+    }
+  }, [scrollY]);
+  
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        width: '100vw',
+        height: `${maskHeight}vh`,
+        backgroundColor: '#FF8FAB',
+        transition: 'height 0.1s ease-out',
+        zIndex: 9999,
+        pointerEvents: 'none'
+      }}
+    />
+  );
+};
+
+// Sliding Text Animation Component
+const SlidingText = ({ scrollY }) => {
+  const [leftTextPosition, setLeftTextPosition] = useState(-100);
+  const [rightTextPosition, setRightTextPosition] = useState(100);
+  
+  useEffect(() => {
+    const startScroll = 4100; // Start sliding after pull-up completes
+    const endScroll = 4500; // Finish sliding at 3900px
+    
+    if (scrollY < startScroll) {
+      setLeftTextPosition(-100);
+      setRightTextPosition(100);
+    } else if (scrollY >= startScroll && scrollY < endScroll) {
+      const progress = (scrollY - startScroll) / (endScroll - startScroll);
+      const easedProgress = 1 - Math.pow(1 - progress, 3); // Cubic ease-out
+      setLeftTextPosition(-100 + (easedProgress * 100)); // Slide from left (-100% to 0%)
+      setRightTextPosition(100 - (easedProgress * 100)); // Slide from right (100% to 0%)
+    } else if (scrollY >= endScroll) {
+      setLeftTextPosition(0);
+      setRightTextPosition(0);
+    }
+  }, [scrollY]);
+  
+  return (
+    <>
+      {/* First line - slides from left */}
+      <div
+        style={{
+          position: 'fixed',
+          top: '40%',
+          left: '50%',
+          transform: `translate(calc(-50% + ${leftTextPosition}vw), -50%)`,
+          zIndex: 10000,
+          fontFamily: 'Raleway, sans-serif',
+          color: '#ffffff',
+          fontSize: '60px',
+          fontWeight: '1000',
+          textAlign: 'center',
+          whiteSpace: 'nowrap',
+          transition: 'transform 0.1s ease-out',
+          pointerEvents: 'none'
+        }}
+      >
+        LET US REIMAGINE YOUR BRAND FOR THE DIGITAL AGE
+      </div>
+      
+      {/* Second line - slides from right */}
+      <div
+        style={{
+          position: 'fixed',
+          top: '48%',
+          left: '50%',
+          transform: `translate(calc(-50% + ${rightTextPosition}vw), -50%)`,
+          zIndex: 10000,
+          fontFamily: 'Raleway, sans-serif',
+          color: '#ffffff',
+          fontSize: '60px',
+          fontWeight: '1000',
+          textAlign: 'center',
+          whiteSpace: 'nowrap',
+          transition: 'transform 0.1s ease-out',
+          pointerEvents: 'none'
+        }}
+      >
+        WHERE EVERY CLICK SPARKS CURIOUSITY.
+      </div>
+    </>
+  );
+};
+
 
 const App = () => {
-    const [carColor, setCarColor] = useState(0x538709); // Default car color (Green)
+    const [carColor, setCarColor] = useState(0xdbbb0d); // Default car color (yellow)
     const [scrollY, setScrollY] = useState(0);
     const [currentScene, setCurrentScene] = useState(1); // 1 for first scene, 2 for second scene
     
@@ -203,6 +309,12 @@ const App = () => {
             onTransitionComplete={handleTransitionComplete}
           />
           
+          {/* Bottom Pull-up Mask for second scene */}
+          <BottomPullMask scrollY={scrollY} />
+          
+          {/* Sliding Text Animation */}
+          <SlidingText scrollY={scrollY} />
+          
           {/* Interactive Panel outside Canvas - hide during scene transition */}
           {currentScene === 1 && (
             <InteractivePanel scrollY={scrollY} setCarColor={setCarColor} carColor={carColor} />
@@ -216,7 +328,7 @@ const App = () => {
               left: '50%',
               transform: 'translateX(-50%)',
               zIndex: 1000,
-              fontFamily: 'Azonix, Inter, sans-serif',
+              fontFamily: 'Raleway, sans-serif',
               color: '#ffffff',
               fontSize: '32px',
               fontWeight: '600',

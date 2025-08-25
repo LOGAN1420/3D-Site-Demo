@@ -6,6 +6,18 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Rockstar';
+  src: url('/fonts/Rockstar-ExtraBold.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 .azonix-text {
   font-family: 'Azonix', sans-serif !important;
+}
+
+.rockstar-text {
+  font-family: 'Rockstar', sans-serif !important;
 }
